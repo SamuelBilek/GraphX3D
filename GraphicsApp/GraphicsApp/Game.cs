@@ -8,12 +8,13 @@ namespace GraphicsApp
 {
     public class Game : GameWindow
     {
-        private readonly float[] vertices =
+        float[] vertices =
         {
-            // positions        // colors
-            0.5f, -0.5f, 0.0f,  1.0f, 0.0f, 0.0f,   // bottom right
-            -0.5f, -0.5f, 0.0f,  0.0f, 1.0f, 0.0f,   // bottom left
-            0.0f,  0.5f, 0.0f,  0.0f, 0.0f, 1.0f    // top 
+            //Position          Texture coordinates
+             0.5f,  0.5f, 0.0f, 1.0f, 1.0f, // top right
+             0.5f, -0.5f, 0.0f, 1.0f, 0.0f, // bottom right
+            -0.5f, -0.5f, 0.0f, 0.0f, 0.0f, // bottom left
+            -0.5f,  0.5f, 0.0f, 0.0f, 1.0f  // top left
         };
 
         uint[] indices = {  // note that we start from 0!
@@ -23,9 +24,12 @@ namespace GraphicsApp
 
         int VertexBufferObject;
         int VertexArrayObject;
-        //int ElementBufferObject;
+        int ElementBufferObject;
 
         Shader shader;
+
+        Texture texture1;
+        Texture texture2;
 
         Stopwatch timer = Stopwatch.StartNew();
 
@@ -47,19 +51,27 @@ namespace GraphicsApp
             VertexArrayObject = GL.GenVertexArray();
             GL.BindVertexArray(VertexArrayObject);
 
-            //ElementBufferObject = GL.GenBuffer();
-            //GL.BindBuffer(BufferTarget.ElementArrayBuffer, ElementBufferObject);
-            //GL.BufferData(BufferTarget.ElementArrayBuffer, indices.Length * sizeof(uint), indices, BufferUsageHint.StaticDraw);
+            ElementBufferObject = GL.GenBuffer();
+            GL.BindBuffer(BufferTarget.ElementArrayBuffer, ElementBufferObject);
+            GL.BufferData(BufferTarget.ElementArrayBuffer, indices.Length * sizeof(uint), indices, BufferUsageHint.StaticDraw);
 
             VertexBufferObject = GL.GenBuffer();
             GL.BindBuffer(BufferTarget.ArrayBuffer, VertexBufferObject);
             GL.BufferData(BufferTarget.ArrayBuffer, vertices.Length * sizeof(float), vertices, BufferUsageHint.StaticDraw);
 
-            GL.VertexAttribPointer(0, 3, VertexAttribPointerType.Float, false, 6 * sizeof(float), 0);
+            GL.VertexAttribPointer(0, 3, VertexAttribPointerType.Float, false, 5 * sizeof(float), 0);
             GL.EnableVertexAttribArray(0);
 
-            GL.VertexAttribPointer(1, 3, VertexAttribPointerType.Float, false, 6 * sizeof(float), 3 * sizeof(float));
-            GL.EnableVertexAttribArray(1);
+            int texCoordLocation = GL.GetAttribLocation(shader.Handle, "aTexCoord");
+            GL.EnableVertexAttribArray(texCoordLocation);
+            GL.VertexAttribPointer(texCoordLocation, 2, VertexAttribPointerType.Float, false, 5 * sizeof(float), 3 * sizeof(float));
+
+            texture1 = new Texture("container.jpg", TextureUnit.Texture0);
+            texture2 = new Texture("awesomeface.png", TextureUnit.Texture1);
+
+            shader.Use();
+            shader.SetInt("texture1", 0);
+            shader.SetInt("texture2", 1);
         }
 
         protected override void OnUnload()
@@ -71,23 +83,18 @@ namespace GraphicsApp
 
         protected override void OnRenderFrame(FrameEventArgs e)
         {
-            base.OnRenderFrame(e);
-
             GL.Clear(ClearBufferMask.ColorBufferBit);
+            GL.BindVertexArray(VertexArrayObject);
 
-            //Code goes here.
+            texture1.Use(TextureUnit.Texture0);
+            texture2.Use(TextureUnit.Texture1);
             shader.Use();
 
-            // update the uniform color
-            //double timeValue = timer.Elapsed.TotalSeconds;
-            //float greenValue = (float)Math.Sin(timeValue) / 2.0f + 0.5f;
-            //int vertexColorLocation = GL.GetUniformLocation(shader.Handle, "ourColor");
-            //GL.Uniform4(vertexColorLocation, 0.0f, greenValue, 0.0f, 1.0f);
+            GL.DrawElements(PrimitiveType.Triangles, indices.Length, DrawElementsType.UnsignedInt, 0);
 
-            GL.BindVertexArray(VertexArrayObject);
-            GL.DrawArrays(PrimitiveType.Triangles, 0, 3);
+            Context.SwapBuffers();
 
-            SwapBuffers();
+            base.OnRenderFrame(e);
         }
 
         protected override void OnFramebufferResize(FramebufferResizeEventArgs e)
