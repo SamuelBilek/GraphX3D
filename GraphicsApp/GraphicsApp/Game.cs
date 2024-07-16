@@ -1,4 +1,5 @@
 ﻿using OpenTK.Graphics.OpenGL4;
+using OpenTK.Mathematics;
 using OpenTK.Windowing.Common;
 using OpenTK.Windowing.Desktop;
 using OpenTK.Windowing.GraphicsLibraryFramework;
@@ -66,12 +67,19 @@ namespace GraphicsApp
             GL.EnableVertexAttribArray(texCoordLocation);
             GL.VertexAttribPointer(texCoordLocation, 2, VertexAttribPointerType.Float, false, 5 * sizeof(float), 3 * sizeof(float));
 
+            Matrix4 rotation = Matrix4.CreateRotationZ(MathHelper.DegreesToRadians(90.0f));
+            Matrix4 scale = Matrix4.CreateScale(0.5f, 0.5f, 0.5f);
+            Matrix4 trans = rotation * scale;
+
             texture1 = new Texture("container.jpg", TextureUnit.Texture0);
             texture2 = new Texture("awesomeface.png", TextureUnit.Texture1);
 
             shader.Use();
             shader.SetInt("texture1", 0);
             shader.SetInt("texture2", 1);
+
+            int matrixLocation = GL.GetUniformLocation(shader.Handle, "transform");
+            GL.UniformMatrix4(matrixLocation, true, ref trans);
         }
 
         protected override void OnUnload()
