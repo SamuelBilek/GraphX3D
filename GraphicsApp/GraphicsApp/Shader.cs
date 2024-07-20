@@ -72,6 +72,13 @@ namespace GraphicsApp
             GL.Uniform1(location, value);
         }
 
+        public void SetVector3(string name, Vector3 vector)
+        {
+            int location = GL.GetUniformLocation(Handle, name);
+
+            GL.Uniform3(location, vector);
+        }
+
         public void SetMatrix4(string name, Matrix4 matrix)
         {
             int location = GL.GetUniformLocation(Handle, name);
