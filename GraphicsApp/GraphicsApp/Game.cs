@@ -65,10 +65,10 @@ namespace GraphicsApp
             -0.5f,  0.5f, -0.5f,  0.0f, 1.0f
         };
 
-        private int _vertexBufferObject;
-        private int _vertexArrayObject;
+        private int _vboMainObj;
+        private int _vaoMainObj;
 
-        private Shader _shader;
+        private Shader _shaderMainObj;
 
         private Texture _texture1;
         private Texture _texture2;
@@ -91,51 +91,41 @@ namespace GraphicsApp
             GL.Enable(EnableCap.DepthTest);
             GL.ClearColor(0.3f, 0.3f, 0.3f, 1.0f);
 
-            //Code goes here
-            _shader = new Shader("shader.vert", "shader.frag");
+            // Main obj
+            _shaderMainObj = new Shader("Shaders/main_obj_vert.glsl", "Shaders/main_obj_frag.glsl");
 
-            _vertexArrayObject = GL.GenVertexArray();
-            GL.BindVertexArray(_vertexArrayObject);
+            _vaoMainObj = GL.GenVertexArray();
+            GL.BindVertexArray(_vaoMainObj);
 
-            _vertexBufferObject = GL.GenBuffer();
-            GL.BindBuffer(BufferTarget.ArrayBuffer, _vertexBufferObject);
+            _vboMainObj = GL.GenBuffer();
+            GL.BindBuffer(BufferTarget.ArrayBuffer, _vboMainObj);
             GL.BufferData(BufferTarget.ArrayBuffer, _vertices.Length * sizeof(float), _vertices, BufferUsageHint.StaticDraw);
 
             GL.VertexAttribPointer(0, 3, VertexAttribPointerType.Float, false, 5 * sizeof(float), 0);
             GL.EnableVertexAttribArray(0);
 
-            int texCoordLocation = GL.GetAttribLocation(_shader.Handle, "aTexCoord");
+            int texCoordLocation = GL.GetAttribLocation(_shaderMainObj.Handle, "aTexCoord");
             GL.EnableVertexAttribArray(texCoordLocation);
             GL.VertexAttribPointer(texCoordLocation, 2, VertexAttribPointerType.Float, false, 5 * sizeof(float), 3 * sizeof(float));
 
-            Matrix4 model = Matrix4.CreateRotationX((float)MathHelper.DegreesToRadians(_timer.ElapsedMilliseconds));
-            Matrix4 view = _camera.GetViewMatrix();
-            Matrix4 projection = _camera.GetProjectionMatrix();
-
             _texture1 = new Texture("container.jpg", TextureUnit.Texture0);
             _texture2 = new Texture("awesomeface.png", TextureUnit.Texture1);
-
-            _shader.Use();
-            _shader.SetInt("texture1", 0);
-            _shader.SetInt("texture2", 1);
-
-            _shader.SetMatrix4("model", model);
-            _shader.SetMatrix4("view", view);
-            _shader.SetMatrix4("projection", projection);
         }
 
         protected override void OnUnload()
         {
             base.OnUnload();
 
-            _shader.Dispose();
+            _shaderMainObj.Dispose();
         }
 
         protected override void OnRenderFrame(FrameEventArgs e)
         {
             GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
-            GL.BindVertexArray(_vertexArrayObject);
+            GL.BindVertexArray(_vaoMainObj);
 
+            
+            // Main obj
             _texture1.Use(TextureUnit.Texture0);
             _texture2.Use(TextureUnit.Texture1);
 
@@ -143,14 +133,14 @@ namespace GraphicsApp
             Matrix4 view = _camera.GetViewMatrix();
             Matrix4 projection = _camera.GetProjectionMatrix();
 
-            _texture1 = new Texture("container.jpg", TextureUnit.Texture0);
-            _texture2 = new Texture("awesomeface.png", TextureUnit.Texture1);
+            _shaderMainObj.Use();
 
-            _shader.Use();
+            _shaderMainObj.SetInt("texture1", 0);
+            _shaderMainObj.SetInt("texture2", 1);
 
-            _shader.SetMatrix4("model", model);
-            _shader.SetMatrix4("view", view);
-            _shader.SetMatrix4("projection", projection);
+            _shaderMainObj.SetMatrix4("model", model);
+            _shaderMainObj.SetMatrix4("view", view);
+            _shaderMainObj.SetMatrix4("projection", projection);
 
             GL.DrawArrays(PrimitiveType.Triangles, 0, 36);
 
