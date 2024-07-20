@@ -5,7 +5,8 @@ namespace GraphicsApp
 {
     public class Shader
     {
-        public int Handle;
+        private int _handle;
+        public int Handle => _handle;
 
         public Shader(string vertexPath, string fragmentPath)
         {
@@ -39,7 +40,7 @@ namespace GraphicsApp
                 Console.WriteLine(infoLog);
             }
 
-            Handle = GL.CreateProgram();
+            this._handle = GL.CreateProgram();
 
             GL.AttachShader(Handle, VertexShader);
             GL.AttachShader(Handle, FragmentShader);

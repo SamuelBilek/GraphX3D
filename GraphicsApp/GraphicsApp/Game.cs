@@ -9,18 +9,19 @@ namespace GraphicsApp
 {
     public class Game : GameWindow
     {
-        int width = 800;
-        int height = 600;
+        private int _width = 800;
+        private int _height = 600;
 
-        bool firstMove = true;
+        private bool _firstMove = true;
 
-        Vector2 lastPos = new Vector2();
+        private Vector2 _lastPos = new Vector2();
 
-        float speed = 1.5f;
+        private float _speed = 1.5f;
 
-        Camera camera = new Camera(Vector3.UnitZ * 3, (float)800 / 600);
+        private Camera _camera = new Camera(Vector3.UnitZ * 3, (float)800 / 600);
 
-        float[] vertices = {
+        private float[] _vertices = {
+            //Position          //Texture coordinates
             -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
              0.5f, -0.5f, -0.5f,  1.0f, 0.0f,
              0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
@@ -64,27 +65,21 @@ namespace GraphicsApp
             -0.5f,  0.5f, -0.5f,  0.0f, 1.0f
         };
 
-        //uint[] indices = {  // note that we start from 0!
-        //    0, 1, 3,   // first triangle
-        //    1, 2, 3    // second triangle
-        //};
+        private int _vertexBufferObject;
+        private int _vertexArrayObject;
 
-        int VertexBufferObject;
-        int VertexArrayObject;
-        int ElementBufferObject;
+        private Shader _shader;
 
-        Shader shader;
+        private Texture _texture1;
+        private Texture _texture2;
 
-        Texture texture1;
-        Texture texture2;
-
-        Stopwatch timer = Stopwatch.StartNew();
+        private Stopwatch _timer = Stopwatch.StartNew();
 
         public Game(int width, int height, string title)
             : base(GameWindowSettings.Default, new NativeWindowSettings() { Size = (width, height), Title = title })
         {
-            this.width = width;
-            this.height = height;
+            this._width = width;
+            this._height = height;
         }
 
         protected override void OnLoad()
@@ -97,70 +92,65 @@ namespace GraphicsApp
             GL.ClearColor(0.2f, 0.3f, 0.3f, 1.0f);
 
             //Code goes here
-            shader = new Shader("shader.vert", "shader.frag");
+            _shader = new Shader("shader.vert", "shader.frag");
 
-            VertexArrayObject = GL.GenVertexArray();
-            GL.BindVertexArray(VertexArrayObject);
+            _vertexArrayObject = GL.GenVertexArray();
+            GL.BindVertexArray(_vertexArrayObject);
 
-            //ElementBufferObject = GL.GenBuffer();
-            //GL.BindBuffer(BufferTarget.ElementArrayBuffer, ElementBufferObject);
-            //GL.BufferData(BufferTarget.ElementArrayBuffer, indices.Length * sizeof(uint), indices, BufferUsageHint.StaticDraw);
-
-            VertexBufferObject = GL.GenBuffer();
-            GL.BindBuffer(BufferTarget.ArrayBuffer, VertexBufferObject);
-            GL.BufferData(BufferTarget.ArrayBuffer, vertices.Length * sizeof(float), vertices, BufferUsageHint.StaticDraw);
+            _vertexBufferObject = GL.GenBuffer();
+            GL.BindBuffer(BufferTarget.ArrayBuffer, _vertexBufferObject);
+            GL.BufferData(BufferTarget.ArrayBuffer, _vertices.Length * sizeof(float), _vertices, BufferUsageHint.StaticDraw);
 
             GL.VertexAttribPointer(0, 3, VertexAttribPointerType.Float, false, 5 * sizeof(float), 0);
             GL.EnableVertexAttribArray(0);
 
-            int texCoordLocation = GL.GetAttribLocation(shader.Handle, "aTexCoord");
+            int texCoordLocation = GL.GetAttribLocation(_shader.Handle, "aTexCoord");
             GL.EnableVertexAttribArray(texCoordLocation);
             GL.VertexAttribPointer(texCoordLocation, 2, VertexAttribPointerType.Float, false, 5 * sizeof(float), 3 * sizeof(float));
 
-            Matrix4 model = Matrix4.CreateRotationX((float)MathHelper.DegreesToRadians(timer.ElapsedMilliseconds));
-            // Note that we're translating the scene in the reverse direction of where we want to move.
-            Matrix4 view = camera.GetViewMatrix();
-            Matrix4 projection = camera.GetProjectionMatrix();
+            Matrix4 model = Matrix4.CreateRotationX((float)MathHelper.DegreesToRadians(_timer.ElapsedMilliseconds));
+            Matrix4 view = _camera.GetViewMatrix();
+            Matrix4 projection = _camera.GetProjectionMatrix();
 
-            texture1 = new Texture("container.jpg", TextureUnit.Texture0);
-            texture2 = new Texture("awesomeface.png", TextureUnit.Texture1);
+            _texture1 = new Texture("container.jpg", TextureUnit.Texture0);
+            _texture2 = new Texture("awesomeface.png", TextureUnit.Texture1);
 
-            shader.Use();
-            shader.SetInt("texture1", 0);
-            shader.SetInt("texture2", 1);
+            _shader.Use();
+            _shader.SetInt("texture1", 0);
+            _shader.SetInt("texture2", 1);
 
-            shader.SetMatrix4("model", model);
-            shader.SetMatrix4("view", view);
-            shader.SetMatrix4("projection", projection);
+            _shader.SetMatrix4("model", model);
+            _shader.SetMatrix4("view", view);
+            _shader.SetMatrix4("projection", projection);
         }
 
         protected override void OnUnload()
         {
             base.OnUnload();
 
-            shader.Dispose();
+            _shader.Dispose();
         }
 
         protected override void OnRenderFrame(FrameEventArgs e)
         {
             GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
-            GL.BindVertexArray(VertexArrayObject);
+            GL.BindVertexArray(_vertexArrayObject);
 
-            texture1.Use(TextureUnit.Texture0);
-            texture2.Use(TextureUnit.Texture1);
+            _texture1.Use(TextureUnit.Texture0);
+            _texture2.Use(TextureUnit.Texture1);
 
             Matrix4 model = Matrix4.CreateRotationX((float)MathHelper.DegreesToRadians(0));
-            Matrix4 view = camera.GetViewMatrix();
-            Matrix4 projection = camera.GetProjectionMatrix();
+            Matrix4 view = _camera.GetViewMatrix();
+            Matrix4 projection = _camera.GetProjectionMatrix();
 
-            texture1 = new Texture("container.jpg", TextureUnit.Texture0);
-            texture2 = new Texture("awesomeface.png", TextureUnit.Texture1);
+            _texture1 = new Texture("container.jpg", TextureUnit.Texture0);
+            _texture2 = new Texture("awesomeface.png", TextureUnit.Texture1);
 
-            shader.Use();
+            _shader.Use();
 
-            shader.SetMatrix4("model", model);
-            shader.SetMatrix4("view", view);
-            shader.SetMatrix4("projection", projection);
+            _shader.SetMatrix4("model", model);
+            _shader.SetMatrix4("view", view);
+            _shader.SetMatrix4("projection", projection);
 
             GL.DrawArrays(PrimitiveType.Triangles, 0, 36);
 
@@ -185,18 +175,18 @@ namespace GraphicsApp
                 return;
             }
 
-            if (firstMove)
+            if (_firstMove)
             {
-                lastPos = new Vector2(e.X, e.Y);
-                firstMove = false;
+                _lastPos = new Vector2(e.X, e.Y);
+                _firstMove = false;
             }
             else
             {
-                float deltaX = e.X - lastPos.X;
-                float deltaY = e.Y - lastPos.Y;
-                lastPos = new Vector2(e.X, e.Y);
-                camera.Yaw += deltaX * 0.1f;
-                camera.Pitch -= deltaY * 0.1f; // reversed since y-coordinates range from bottom to top
+                float deltaX = e.X - _lastPos.X;
+                float deltaY = e.Y - _lastPos.Y;
+                _lastPos = new Vector2(e.X, e.Y);
+                _camera.Yaw += deltaX * 0.1f;
+                _camera.Pitch -= deltaY * 0.1f; // reversed since y-coordinates range from bottom to top
             }
         }
 
@@ -218,32 +208,32 @@ namespace GraphicsApp
 
             if (input.IsKeyDown(Keys.W))
             {
-                camera.Position += camera.Front * speed * (float)e.Time; //Forward 
+                _camera.Position += _camera.Front * _speed * (float)e.Time; //Forward 
             }
 
             if (input.IsKeyDown(Keys.S))
             {
-                camera.Position -= camera.Front * speed * (float)e.Time; //Backwards
+                _camera.Position -= _camera.Front * _speed * (float)e.Time; //Backwards
             }
 
             if (input.IsKeyDown(Keys.A))
             {
-                camera.Position -= Vector3.Normalize(Vector3.Cross(camera.Front, camera.Up)) * speed * (float)e.Time; //Left
+                _camera.Position -= Vector3.Normalize(Vector3.Cross(_camera.Front, _camera.Up)) * _speed * (float)e.Time; //Left
             }
 
             if (input.IsKeyDown(Keys.D))
             {
-                camera.Position += Vector3.Normalize(Vector3.Cross(camera.Front, camera.Up)) * speed * (float)e.Time; //Right
+                _camera.Position += Vector3.Normalize(Vector3.Cross(_camera.Front, _camera.Up)) * _speed * (float)e.Time; //Right
             }
 
             if (input.IsKeyDown(Keys.Space))
             {
-                camera.Position += camera.Up * speed * (float)e.Time; //Up 
+                _camera.Position += _camera.Up * _speed * (float)e.Time; //Up 
             }
 
             if (input.IsKeyDown(Keys.LeftShift))
             {
-                camera.Position -= camera.Up * speed * (float)e.Time; //Down
+                _camera.Position -= _camera.Up * _speed * (float)e.Time; //Down
             }
         }
     }

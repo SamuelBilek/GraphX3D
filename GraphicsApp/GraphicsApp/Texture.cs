@@ -7,11 +7,13 @@ namespace GraphicsApp
 {
     public class Texture
     {
-        public int Handle;
+        private int _handle;
+        
+        public int Handle => _handle;
 
         public Texture(string imagePath, TextureUnit unit = TextureUnit.Texture0)
         {
-            Handle = GL.GenTexture();
+            this._handle = GL.GenTexture();
             Use(unit);
 
             // stb_image loads from the top-left pixel, whereas OpenGL loads from the bottom-left, causing the texture to be flipped vertically.
