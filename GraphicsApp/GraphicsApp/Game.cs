@@ -181,9 +181,15 @@ namespace GraphicsApp
 
             _shaderMainObj.SetVector3("viewPos", _camera.Position);
 
-            _shaderMainObj.SetVector3("lightPos", _lightPos);
-            _shaderMainObj.SetVector3("objectColor", new Vector3(1.0f, 0.5f, 0.31f));
-            _shaderMainObj.SetVector3("lightColor", new Vector3(1.0f, 1.0f, 1.0f));
+            _shaderMainObj.SetVector3("light.position", _lightPos);
+            _shaderMainObj.SetVector3("light.ambient", new Vector3(0.2f, 0.2f, 0.2f));
+            _shaderMainObj.SetVector3("light.diffuse", new Vector3(0.5f, 0.5f, 0.5f)); // darken the light a bit to fit the scene
+            _shaderMainObj.SetVector3("light.specular", new Vector3(1.0f, 1.0f, 1.0f));
+
+            _shaderMainObj.SetVector3("material.ambient", new Vector3(1.0f, 0.5f, 0.31f));
+            _shaderMainObj.SetVector3("material.diffuse", new Vector3(1.0f, 0.5f, 0.31f));
+            _shaderMainObj.SetVector3("material.specular", new Vector3(0.5f, 0.5f, 0.5f));
+            _shaderMainObj.SetFloat("material.shininess", 32.0f);
 
             _shaderMainObj.SetMatrix4("model", modelMainObj);
             _shaderMainObj.SetMatrix4("view", view);
