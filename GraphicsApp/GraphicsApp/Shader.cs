@@ -1,7 +1,5 @@
 ﻿using OpenTK.Graphics.OpenGL4;
-using OpenTK.Windowing.Common;
-using OpenTK.Windowing.Desktop;
-using OpenTK.Windowing.GraphicsLibraryFramework;
+using OpenTK.Mathematics;
 
 namespace GraphicsApp
 {
@@ -71,6 +69,13 @@ namespace GraphicsApp
             int location = GL.GetUniformLocation(Handle, name);
 
             GL.Uniform1(location, value);
+        }
+
+        public void SetMatrix4(string name, Matrix4 matrix)
+        {
+            int location = GL.GetUniformLocation(Handle, name);
+
+            GL.UniformMatrix4(location, true, ref matrix);
         }
 
         private bool disposedValue = false;
