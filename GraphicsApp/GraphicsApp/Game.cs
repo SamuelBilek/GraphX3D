@@ -110,6 +110,8 @@ namespace GraphicsApp
 
         private Stopwatch _timer = Stopwatch.StartNew();
 
+        private bool _canMove = false;
+
         public Game(int width, int height, string title)
             : base(GameWindowSettings.Default, new NativeWindowSettings() { Size = (width, height), Title = title })
         {
@@ -120,8 +122,6 @@ namespace GraphicsApp
         protected override void OnLoad()
         {
             base.OnLoad();
-
-            CursorState = CursorState.Grabbed;
 
             _camera.LookAt(Vector3.Zero);
 
@@ -267,11 +267,39 @@ namespace GraphicsApp
             GL.Viewport(0, 0, e.Width, e.Height);
         }
 
+        protected override void OnMouseDown(MouseButtonEventArgs e)
+        {
+            base.OnMouseDown(e);
+
+            if (e.Button == MouseButton.Right)
+            {
+                CursorState = CursorState.Grabbed;
+                _canMove = true;
+                _firstMove = true;
+            }
+        }
+
+        protected override void OnMouseUp(MouseButtonEventArgs e)
+        {
+            base.OnMouseUp(e);
+
+            if (e.Button == MouseButton.Right)
+            {
+                CursorState = CursorState.Normal;
+                _canMove = false;
+            }
+        }   
+
         protected override void OnMouseMove(MouseMoveEventArgs e)
         {
             base.OnMouseMove(e);
 
             if (!IsFocused) // check to see if the window is focused
+            {
+                return;
+            }
+
+            if (!_canMove)
             {
                 return;
             }
@@ -305,6 +333,11 @@ namespace GraphicsApp
             if (input.IsKeyDown(Keys.Escape))
             {
                 Close();
+            }
+
+            if (!_canMove)
+            {
+                return;
             }
 
             if (input.IsKeyDown(Keys.W))
