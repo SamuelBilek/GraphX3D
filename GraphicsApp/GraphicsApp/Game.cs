@@ -18,9 +18,9 @@ namespace GraphicsApp
 
         private float _speed = 1.5f;
 
-        private Camera _camera = new Camera(Vector3.UnitZ * 3, (float)800 / 600);
+        private Camera _camera = new Camera(new Vector3(-4.0f, 4.0f, 4.0f), (float)800 / 600);
 
-        private float[] _vertices = {
+        private float[] _verticesMainObj = {
             //Position             //Texture coordinates     // Normals
             // Front face
             // Triangle 1
@@ -83,14 +83,25 @@ namespace GraphicsApp
              0.5f,  0.5f,  0.5f,   1.0f, 1.0f,               1.0f,  0.0f,  0.0f   // Top-right
         };
 
+        private float[] _verticesGrid = {
+            -100.0f, 0.0f, -100.0f,
+             100.0f, 0.0f, -100.0f,
+             100.0f, 0.0f,  100.0f,
+            -100.0f, 0.0f,  100.0f,
+        };
+
         private int _vboMainObj;
         private int _vaoMainObj;
 
         private int _vboLamp;
         private int _vaoLamp;
 
+        private int _vboGrid;
+        private int _vaoGrid;
+
         private Shader _shaderMainObj;
         private Shader _shaderLamp;
+        private Shader _shaderGrid;
 
         private Texture _texture1;
         private Texture _texture2;
@@ -112,8 +123,14 @@ namespace GraphicsApp
 
             CursorState = CursorState.Grabbed;
 
+            _camera.LookAt(Vector3.Zero);
+
             GL.Enable(EnableCap.DepthTest);
-            GL.ClearColor(0.3f, 0.3f, 0.3f, 1.0f);
+            GL.ClearColor(0.15f, 0.15f, 0.15f, 1.0f);
+
+            // Enable blending
+            GL.Enable(EnableCap.Blend);
+            GL.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.OneMinusSrcAlpha);
 
             // Main obj
             _shaderMainObj = new Shader("Shaders/main_obj_vert.glsl", "Shaders/main_obj_frag.glsl");
@@ -123,7 +140,7 @@ namespace GraphicsApp
 
             _vboMainObj = GL.GenBuffer();
             GL.BindBuffer(BufferTarget.ArrayBuffer, _vboMainObj);
-            GL.BufferData(BufferTarget.ArrayBuffer, _vertices.Length * sizeof(float), _vertices, BufferUsageHint.StaticDraw);
+            GL.BufferData(BufferTarget.ArrayBuffer, _verticesMainObj.Length * sizeof(float), _verticesMainObj, BufferUsageHint.StaticDraw);
 
             GL.VertexAttribPointer(0, 3, VertexAttribPointerType.Float, false, 8 * sizeof(float), 0);
             GL.EnableVertexAttribArray(0);
@@ -150,6 +167,19 @@ namespace GraphicsApp
             int vertexLocation = GL.GetAttribLocation(_shaderLamp.Handle, "aPosition");
             GL.EnableVertexAttribArray(vertexLocation);
             GL.VertexAttribPointer(vertexLocation, 3, VertexAttribPointerType.Float, false, 8 * sizeof(float), 0);
+
+            // Grid
+            _shaderGrid = new Shader("Shaders/grid_vert.glsl", "Shaders/grid_frag.glsl");
+
+            _vaoGrid = GL.GenVertexArray();
+            GL.BindVertexArray(_vaoGrid);
+
+            _vboGrid = GL.GenBuffer();
+            GL.BindBuffer(BufferTarget.ArrayBuffer, _vboGrid);
+            GL.BufferData(BufferTarget.ArrayBuffer, _verticesGrid.Length * sizeof(float), _verticesGrid, BufferUsageHint.StaticDraw);
+
+            GL.VertexAttribPointer(0, 3, VertexAttribPointerType.Float, false, 3 * sizeof(float), 0);
+            GL.EnableVertexAttribArray(0);
         }
 
         protected override void OnUnload()
@@ -213,6 +243,17 @@ namespace GraphicsApp
             _shaderLamp.SetMatrix4("projection", _camera.GetProjectionMatrix());
 
             GL.DrawArrays(PrimitiveType.Triangles, 0, 36);
+
+            // Grid
+            GL.BindVertexArray(_vaoGrid);
+
+            _shaderGrid.Use();
+            _shaderGrid.SetMatrix4("view", view);
+            _shaderGrid.SetMatrix4("projection", projection);
+
+            _shaderGrid.SetVector3("cameraPos", _camera.Position);
+
+            GL.DrawArrays(PrimitiveType.TriangleFan, 0, 4);
 
             Context.SwapBuffers();
 

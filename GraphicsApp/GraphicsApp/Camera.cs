@@ -83,6 +83,14 @@ namespace GraphicsApp
             }
         }
 
+        public void LookAt(Vector3 target)
+        {
+            _front = Vector3.Normalize(target - Position);
+            _pitch = MathF.Asin(_front.Y);
+            _yaw = MathF.Atan2(_front.Z, _front.X);
+            UpdateVectors();
+        }   
+
         // Get the view matrix using the amazing LookAt function described more in depth on the web tutorials
         public Matrix4 GetViewMatrix()
         {
