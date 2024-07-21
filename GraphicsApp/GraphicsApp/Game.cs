@@ -90,6 +90,12 @@ namespace GraphicsApp
             -100.0f, 0.0f,  100.0f,
         };
 
+        private int _frameBuffer;
+        private int _colorBuffer;
+        private int _depthBuffer;
+
+        private int _aaSamples = 4;
+
         private int _vboMainObj;
         private int _vaoMainObj;
 
@@ -124,6 +130,8 @@ namespace GraphicsApp
             base.OnLoad();
 
             _camera.LookAt(Vector3.Zero);
+
+            GL.Enable(EnableCap.Multisample);
 
             GL.Enable(EnableCap.DepthTest);
             GL.ClearColor(0.15f, 0.15f, 0.15f, 1.0f);
@@ -180,6 +188,9 @@ namespace GraphicsApp
 
             GL.VertexAttribPointer(0, 3, VertexAttribPointerType.Float, false, 3 * sizeof(float), 0);
             GL.EnableVertexAttribArray(0);
+
+            // Framebuffer
+            PrepareFrameBuffer();
         }
 
         protected override void OnUnload()
@@ -189,8 +200,36 @@ namespace GraphicsApp
             _shaderMainObj.Dispose();
         }
 
+        private void PrepareFrameBuffer()
+        {
+            _frameBuffer = GL.GenFramebuffer();
+            GL.BindFramebuffer(FramebufferTarget.Framebuffer, _frameBuffer);
+
+            // Create and bind the color renderbuffer
+            _colorBuffer = GL.GenRenderbuffer();
+            GL.BindRenderbuffer(RenderbufferTarget.Renderbuffer, _colorBuffer);
+            GL.RenderbufferStorageMultisample(RenderbufferTarget.Renderbuffer, _aaSamples, RenderbufferStorage.Rgba8, _width, _height);
+            GL.FramebufferRenderbuffer(FramebufferTarget.Framebuffer, FramebufferAttachment.ColorAttachment0, RenderbufferTarget.Renderbuffer, _colorBuffer);
+
+            // Create and bind the depth renderbuffer
+            _depthBuffer = GL.GenRenderbuffer();
+            GL.BindRenderbuffer(RenderbufferTarget.Renderbuffer, _depthBuffer);
+            GL.RenderbufferStorageMultisample(RenderbufferTarget.Renderbuffer, _aaSamples, RenderbufferStorage.DepthComponent, _width, _height);
+            GL.FramebufferRenderbuffer(FramebufferTarget.Framebuffer, FramebufferAttachment.DepthAttachment, RenderbufferTarget.Renderbuffer, _depthBuffer);
+
+            // Check framebuffer completeness
+            if (GL.CheckFramebufferStatus(FramebufferTarget.Framebuffer) != FramebufferErrorCode.FramebufferComplete)
+            {
+                throw new Exception("Framebuffer is not complete.");
+            }
+
+            // Unbind the framebuffer
+            GL.BindFramebuffer(FramebufferTarget.Framebuffer, 0);
+        }
+
         protected override void OnRenderFrame(FrameEventArgs e)
         {
+            GL.BindFramebuffer(FramebufferTarget.Framebuffer, _frameBuffer);
             GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
 
             Matrix4 view = _camera.GetViewMatrix();
@@ -255,6 +294,13 @@ namespace GraphicsApp
 
             GL.DrawArrays(PrimitiveType.TriangleFan, 0, 4);
 
+            // Copy the multisampled buffer to the default framebuffer
+            GL.BindFramebuffer(FramebufferTarget.ReadFramebuffer, _frameBuffer);
+            GL.BindFramebuffer(FramebufferTarget.DrawFramebuffer, 0); // Write to default framebuffer
+
+            // Blit the multisampled buffer to the default framebuffer
+            GL.BlitFramebuffer(0, 0, _width, _height, 0, 0, _width, _height, ClearBufferMask.ColorBufferBit, BlitFramebufferFilter.Nearest);
+
             Context.SwapBuffers();
 
             base.OnRenderFrame(e);
@@ -265,6 +311,9 @@ namespace GraphicsApp
             base.OnFramebufferResize(e);
 
             GL.Viewport(0, 0, e.Width, e.Height);
+            _width = e.Width;
+            _height = e.Height;
+            PrepareFrameBuffer();
         }
 
         protected override void OnMouseDown(MouseButtonEventArgs e)

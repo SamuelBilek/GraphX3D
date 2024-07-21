@@ -9,7 +9,7 @@ out vec4 FragColor;
 void main()
 {
     float gridSpacing = 1.0; // The spacing of the grid lines
-    float lineThickness = 0.01; // The thickness of the grid lines
+    float lineThickness = 0.015; // The thickness of the grid lines
 
     // Calculate the grid lines
     vec2 grid = abs(fract(fragPos.xz / gridSpacing - 0.5) - 0.5) / fwidth(fragPos.xz / gridSpacing);
@@ -29,7 +29,7 @@ void main()
     float alpha = 1.0 - smoothstep(0.0, thickness, line);
 
     // Define the threshold for the axis lines
-    float axisThreshold = lineThickness * 2.0; // Make axis lines slightly thicker
+    float axisThreshold = lineThickness * 1.25; // Make axis lines slightly thicker
 
     // Colors for the X and Z axes
     vec3 xAxisColor = vec3(0.5, 0.0, 0.0); // Red for X axis
