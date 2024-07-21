@@ -186,6 +186,10 @@ namespace GraphicsApp
             _shaderMainObj.SetVector3("light.diffuse", new Vector3(0.5f, 0.5f, 0.5f)); // darken the light a bit to fit the scene
             _shaderMainObj.SetVector3("light.specular", new Vector3(1.0f, 1.0f, 1.0f));
 
+            _shaderMainObj.SetFloat("light.constant", 1.0f);
+            _shaderMainObj.SetFloat("light.linear", 0.09f);
+            _shaderMainObj.SetFloat("light.quadratic", 0.032f);
+
             _shaderMainObj.SetVector3("material.ambient", new Vector3(1.0f, 0.5f, 0.31f));
             _shaderMainObj.SetVector3("material.diffuse", new Vector3(1.0f, 0.5f, 0.31f));
             _shaderMainObj.SetVector3("material.specular", new Vector3(0.5f, 0.5f, 0.5f));
