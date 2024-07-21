@@ -15,11 +15,37 @@ void main()
     vec2 grid = abs(fract(fragPos.xz / gridSpacing - 0.5) - 0.5) / fwidth(fragPos.xz / gridSpacing);
     float line = min(grid.x, grid.y);
 
-    // Set the alpha value based on the distance to the nearest grid line
-    float alpha = 1.0 - smoothstep(1.0 - lineThickness, 1.0, line);
+    // Default grid color is gray
+    vec3 gridColor = vec3(0.3);
 
-    // Set the final fragment color with transparency
-    vec3 gridColor = vec3(0.2);
+    // Calculate the distance from the X and Z axes
+    float distToXAxis = abs(fragPos.z);
+    float distToZAxis = abs(fragPos.x);
+
+    // Calculate the line thickness based on the screen space derivatives
+    float thickness = lineThickness / fwidth(fragPos.x + fragPos.z);
+
+    // Calculate the alpha value for the grid lines
+    float alpha = 1.0 - smoothstep(0.0, thickness, line);
+
+    // Define the threshold for the axis lines
+    float axisThreshold = lineThickness * 2.0; // Make axis lines slightly thicker
+
+    // Colors for the X and Z axes
+    vec3 xAxisColor = vec3(0.5, 0.0, 0.0); // Red for X axis
+    vec3 zAxisColor = vec3(0.0, 0.5, 0.0); // Green for Z axis
+
+    // Calculate the contribution of the axis lines
+    float xAxisLine = 1.0 - smoothstep(0.0, axisThreshold, distToXAxis);
+    float zAxisLine = 1.0 - smoothstep(0.0, axisThreshold, distToZAxis);
+
+    // Blend the colors based on the distance to the axes
+    vec3 blendedColor = mix(gridColor, xAxisColor, xAxisLine);
+    blendedColor = mix(blendedColor, zAxisColor, zAxisLine);
+
+    // Ensure the axes lines are visible and maintain the same thickness
+    alpha = max(alpha, xAxisLine);
+    alpha = max(alpha, zAxisLine);
 
     // Hide the ugly grid ends in fog
     vec3 fogColor = vec3(0.15);
@@ -28,7 +54,7 @@ void main()
 
     float distance = length(fragPos);
     float fogFactor = clamp((fogEnd - distance) / (fogEnd - fogStart), 0.0, 1.0);
-    vec3 finalColor = mix(fogColor, gridColor, fogFactor);
+    vec3 finalColor = mix(fogColor, blendedColor, fogFactor);
 
     FragColor = vec4(finalColor, alpha);
 }
